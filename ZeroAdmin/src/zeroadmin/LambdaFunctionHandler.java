@@ -8,6 +8,8 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -109,23 +111,27 @@ public class LambdaFunctionHandler implements RequestHandler<S3Event, Object> {
 				columns[i-1] = rsMetaData.getColumnName(i);
 			}
 			
-			// TODO: Optimize; possibly iterate through rs instead
+			// Create an ArrayList of all results to use for comparison
+			ArrayList<String[]> tableData = new ArrayList<String[]>();
+			while (rs.next()) {
+				String[] rowData = new String[columns.length];
+				for (int i = 1; i <= columns.length; i++) {
+					rowData[i-1] = rs.getString(i);
+				}
+				tableData.add(rowData);
+			}
+			
 			for (String row : dataString.split("\n")) {
+				boolean flag = false;
 				String[] values = row.split(",");
-				stmt = conn.createStatement();
-				sql = "select * from test where ";
-				for (int i = 0; i < values.length; i++) {
-					if (i == values.length-1) {
-						sql += "" + columns[i] + " = " + "\'" + values[i] + "\'";
-					}
-					else {
-						sql += "" + columns[i] + " = " + "\'" + values[i] + "\' and ";
+				for (String[] data : tableData) {
+					if (Arrays.equals(values, data)) {
+						flag = true;
+						break;
 					}
 				}
-				rs = stmt.executeQuery(sql);
-				
-				if (!rs.next()) {
-					 deduped += "" + row + "\r\n";
+				if (!flag) {
+					deduped += "" + row + "\r\n";
 				}
 			}
 		} catch (Exception e) {
