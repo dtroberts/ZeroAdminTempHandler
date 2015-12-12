@@ -1,0 +1,5 @@
+#Lambda Function Project Metadata
+#Sat Dec 12 07:16:05 EST 2015
+lastDeploymentFunctionName=Dedupe
+lastDeploymentBucketName=lambda-function-bucket-us-west-2-1449880311857
+lastDeploymentEndpoint=https\://lambda.us-west-2.amazonaws.com/
