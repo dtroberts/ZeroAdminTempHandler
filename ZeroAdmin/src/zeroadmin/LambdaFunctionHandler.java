@@ -28,6 +28,7 @@ public class LambdaFunctionHandler implements RequestHandler<S3Event, Object> {
 	static final String masterPassword = "7Drebinx7";
 	static final String dbURL = "jdbc:redshift://dtroberts-ec2-test.c0y2ox1yoyin.us-west-2.redshift.amazonaws.com:5439/db";
 	static final String destBucket = "dtrobertstestbucket";
+	static int countEntries = 0;
 	
     @Override
     public String handleRequest(S3Event input, Context context) {
@@ -74,7 +75,7 @@ public class LambdaFunctionHandler implements RequestHandler<S3Event, Object> {
         		// TODO Auto-generated catch block
         		e.printStackTrace();
         	}
-        	context.getLogger().log("Successfully added the following entries: " + deduped);
+        	context.getLogger().log("Successfully added " + countEntries + " entries");
             return deduped;
         }
         else {
@@ -132,6 +133,7 @@ public class LambdaFunctionHandler implements RequestHandler<S3Event, Object> {
 				}
 				if (!flag) {
 					deduped += "" + row + "\r\n";
+					countEntries++;
 				}
 			}
 		} catch (Exception e) {

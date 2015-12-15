@@ -1,0 +1,5 @@
+#Lambda Function Project Metadata
+#Tue Dec 15 00:21:45 EST 2015
+lastDeploymentFunctionName=TempTableDedupe
+lastDeploymentBucketName=lambda-function-bucket-us-west-2-1450056540335
+lastDeploymentEndpoint=https\://lambda.us-west-2.amazonaws.com/
