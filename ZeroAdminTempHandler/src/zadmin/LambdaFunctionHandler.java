@@ -36,8 +36,12 @@ public class LambdaFunctionHandler implements RequestHandler<SNSEvent, Object> {
 	static final String destSNS = "arn:aws:sns:us-west-2:602634635920:RedshiftSuccessfulLoads";
 	
     @Override
+    /**
+     * This function performs a dedupe operation on the temp table against the main table.
+     * @param input SNS event which triggered this instance
+     * @param context Context used for logging
+     */
     public Object handleRequest(SNSEvent input, Context context) {
-        // dedupe temp table against main table
         Connection conn = null;
 		Statement stmt = null;
 		String sql, deduped = "";
@@ -51,30 +55,44 @@ public class LambdaFunctionHandler implements RequestHandler<SNSEvent, Object> {
 			conn = DriverManager.getConnection(dbURL, props);
 			
 			// retrieve unique rows
-			// TODO: Properly remove entries which are not placed in dedupe
 			stmt = conn.createStatement();
-			sql = "select * from temp except (select * from test) limit " + MAX_PROCESSED;
+			sql = "select * into temporary small_temp from temp limit " + MAX_PROCESSED;
+			stmt.execute(sql);
+			sql = "select * from small_temp except (select * from test)";
 			rs = stmt.executeQuery(sql);
 			
-			int count = 0;		// limit the number of processed rows to MAX_PROCESSED
-			while (count < MAX_PROCESSED && rs.next()) {
+			while (rs.next()) {
 				for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
 					deduped += "" + rs.getString(i) + ",";
 				}
 				deduped = deduped.substring(0, deduped.length()-1);
 				deduped += "\r\n";
-				count++;
 			}
 			
 			// remove all processed entries from temp table
-			stmt = updateTempTable(conn, deduped, rs, count);
+			sql = "select * from small_temp";
+			rs = stmt.executeQuery(sql);
+			String processed = "";
+			while (rs.next()) {
+				for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
+					processed += "" + rs.getString(i) + ",";
+				}
+				processed = processed.substring(0, processed.length()-1);
+				processed += "\r\n";
+			}
+			stmt = updateTempTable(conn, processed, rs);
 			
 			// If empty, no new data needs to be written to the bucket
 			if (!deduped.isEmpty()) {	
 				writeDedupedToBucket(context, deduped);
 	        }
+			else {
+				context.getLogger().log("No new tuples to add");
+			}
 			
-			// If num rows > MAX_PROCESSED, request a new function instance to process
+			// If rows still need to be processed, request a new function instance
+			sql = "select * from temp limit 1";
+			rs = stmt.executeQuery(sql);
 			if (rs.next()) {
 				stmt.close();
 				conn.close();
@@ -94,27 +112,27 @@ public class LambdaFunctionHandler implements RequestHandler<SNSEvent, Object> {
     /**
      * Update the temp table by removing the processed tuples.
      * @param conn Connection to the database
-     * @param deduped String containing the 
+     * @param processed String containing the 
      **/
-	private Statement updateTempTable(Connection conn, String deduped,
-			ResultSet rs, int count) throws SQLException {
+	private Statement updateTempTable(Connection conn, String processed,
+			ResultSet rs) throws SQLException {
 		Statement stmt;
 		String sql;
-		String[] delete = deduped.split("\r\n");
+		String[] delete = processed.split("\r\n");
 		stmt = conn.createStatement();
 		sql = "delete from temp where (";
-		while (count > 0) {
+		for (int i = 0; i < delete.length; i++) {
 			sql += "(";
-			String[] deleteRow = delete[count-1].split(",");
-			for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
-				sql += "(temp." + rs.getMetaData().getColumnName(i) + "=\'" + deleteRow[i-1] + "\')";
-				if (i != rs.getMetaData().getColumnCount()) {
+			String[] deleteRow = delete[i].split(",");
+			for (int j = 1; j <= rs.getMetaData().getColumnCount(); j++) {
+				sql += "(temp." + rs.getMetaData().getColumnName(j) + "=\'" + deleteRow[j-1] + "\')";
+				if (j != rs.getMetaData().getColumnCount()) {
 					sql += " and ";
 				}
 			}
 			sql += ") or ";
-			count--;
 		}
+		
 		if (!(sql.length() <= 25)) {	// protection against the case where there are no rows to clean up
 			sql = sql.substring(0, sql.length()-4);
 			sql += ")";
