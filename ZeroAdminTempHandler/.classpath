@@ -7,6 +7,5 @@
 	<classpathentry kind="con" path="com.amazonaws.eclipse.sdk.AWS_JAVA_SDK"/>
 	<classpathentry kind="src" path="tst"/>
 	<classpathentry kind="lib" path="RedshiftJDBC41-1.1.10.1010.jar"/>
-	<classpathentry kind="lib" path="RedshiftJDBC4-1.1.10.1010.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

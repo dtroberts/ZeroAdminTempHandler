@@ -1,26 +1,24 @@
 package zadmin;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.Properties;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.sns.AmazonSNSClient;
 
+/** 
+ * Used for on-the-fly testing.
+ * @author Devin Roberts
+ *
+ */
 public class Main {
 	static final int maxProcessed = 1000;
 	static final String masterUser = "dtroberts";
-	static final String masterPassword = "7Drebinx7";
+	static final String masterPassword = "Masterpw1";
 	static final String dbURL = "jdbc:redshift://dtroberts-ec2-test.c0y2ox1yoyin.us-west-2.redshift.amazonaws.com:5439/db";
 	static final String destBucket = "dtrobertstestbucket";
 	static final String destKey = "" + System.currentTimeMillis() + ".csv";
@@ -81,23 +79,7 @@ public class Main {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-
-		/*
-		if (!deduped.isEmpty()) {	// If so, no new data needs to be written to the bucket
-			try {
-				InputStream is = new ByteArrayInputStream(deduped.getBytes("US-ASCII"));
-				ObjectMetadata metadata = new ObjectMetadata();
-				metadata.setContentType((String) "application/octet-stream");
-				metadata.setContentLength(deduped.length());
-				s3Client.putObject(destBucket, destKey, is, metadata);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}*/
-		// TODO: implement your handler
-		
+		}		
 	}
 
 }
