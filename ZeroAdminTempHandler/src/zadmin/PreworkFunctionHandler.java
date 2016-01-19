@@ -20,9 +20,7 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 
 /**
- * Further optimizations: 
- *  - find better workaround for lack ResultSet.CONCUR_UPDATABLE
- *  - tune MAX_PROCESSED size
+ * 	This is deprecated as the rules file does not appear to be useful in conjunction with the zero-admin loader framework. 
  *  @author Devin Roberts
  */
 public class PreworkFunctionHandler implements RequestHandler<S3Event, Object> {
