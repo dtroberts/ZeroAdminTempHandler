@@ -99,7 +99,7 @@ public class LambdaFunctionHandler implements RequestHandler<SNSEvent, Object> {
 				AmazonSNSClient snsClient = new AmazonSNSClient();
 				snsClient.setRegion(Region.getRegion(Regions.US_WEST_2));
 				context.getLogger().log("New instance requested for further processing");
-				snsClient.publish(destSNS, "run new dedupe");
+				snsClient.publish(destSNS, "run new dedupe");	// send SNS message
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -121,6 +121,10 @@ public class LambdaFunctionHandler implements RequestHandler<SNSEvent, Object> {
 		String[] delete = processed.split("\r\n");
 		stmt = conn.createStatement();
 		sql = "delete from temp where (";
+		
+		
+		/* Iteratively formulate the statement. This must be done because Redshift does not support 
+		 * ResultSet.CONCUR_UPDATABLE, and thus does not allow the table to be modified on the spot. */
 		for (int i = 0; i < delete.length; i++) {
 			sql += "(";
 			String[] deleteRow = delete[i].split(",");
