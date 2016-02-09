@@ -1,8 +1,6 @@
 package zeroadmin;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -23,6 +21,10 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
 
+/**
+ * This class is no longer used as it is outperformed by using a temp table.
+ * @author Devin Roberts
+ */
 public class LambdaFunctionHandler implements RequestHandler<S3Event, Object> {
 	static final String masterUser = "dtroberts";
 	static final String masterPassword = "7Drebinx7";
